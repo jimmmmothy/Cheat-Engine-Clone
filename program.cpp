@@ -118,6 +118,27 @@ void narrowDownAddress(HANDLE hProcess, const void* pattern, size_t patternSize,
     }
 }
 
+void findAddressLoop(HANDLE hProcess, std::vector<void*>& foundAddresses) {
+    while (true) {
+        std::string value;
+        std::cout << "Enter next value to search for or 'write' to write to an address: ";
+        std::cin >> value;
+    
+        if (value == "write")
+        {
+            return;
+        }
+    
+        float floatValue = std::stof(value);
+        
+        // Convert the float to a byte array
+        unsigned char floatBuffer[sizeof(float)];
+        memcpy(floatBuffer, &floatValue, sizeof(float));
+    
+        narrowDownAddress(hProcess, floatBuffer, sizeof(float), foundAddresses);
+    }
+}
+
 int main () 
 {
     listProcesses();
@@ -155,13 +176,8 @@ int main ()
     scanVirtualPages(hProcess, floatBuffer, sizeof(float), foundAddresses);
     terminalBreak();
 
-    std::cout << "Enter next value to search for: ";
-    std::cin >> value;
+    findAddressLoop(hProcess, foundAddresses);
 
-    // Convert the float to a byte array
-    memcpy(floatBuffer, &value, sizeof(float));
-
-    narrowDownAddress(hProcess, floatBuffer, sizeof(float), foundAddresses);
     terminalBreak();
 
     std::cout << "Enter the address to write to: ";
